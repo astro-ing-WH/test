@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>边缘智算·决策直达 — 宣讲展示</title>
+<style>
+:root{
+  --bg:#F6F8FB; --surface:#FFFFFF; --surface-2:#F1F5F9;
+  --ink:#0F172A; --t2:#334155; --t3:#64748B;
+  --line:rgba(2,6,23,.10); --line-2:rgba(2,6,23,.18);
+  --blue:#0369A1; --blue-soft:#E0F2FE;
+  --good:#0e9f6e; --good-soft:#E7F6F0;
+  --warn:#d97706; --warn-soft:#FCF1E3;
+  --bad:#DC2626;  --bad-soft:#FBEAEA;
+  --navy-grad:linear-gradient(135deg,#0B1F3A 0%,#123C63 55%,#0E5A8A 100%);
+  --radius:10px; --radius-lg:16px;
+  --shadow:0 1px 3px rgba(2,6,23,.06),0 6px 18px rgba(2,6,23,.05);
+  --shadow-lg:0 8px 30px rgba(2,6,23,.10);
+  --nav-h:60px;
+  --maxw:1120px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 16px)}
+body{
+  font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+  background:var(--bg); color:var(--t2); line-height:1.85; font-size:16px;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{color:var(--ink); line-height:1.4; font-weight:700}
+strong,b{color:var(--ink)}
+.mono{font-family:Consolas,"Courier New",monospace; letter-spacing:.3px}
+
+/* ===== 顶部进度条 + 导航 ===== */
+.progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:99;
+  background:linear-gradient(90deg,var(--blue),#38BDF8); transition:width .1s linear}
+.topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:98;
+  background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);}
+.topnav-in{max-width:var(--maxw);margin:0 auto;height:100%;padding:0 24px;
+  display:flex;align-items:center;gap:26px}
+.brand{font-weight:800;color:var(--ink);font-size:16px;white-space:nowrap;letter-spacing:1px}
+.brand em{font-style:normal;color:var(--blue)}
+.navlinks{display:flex;gap:4px;margin-left:auto;flex-wrap:nowrap;overflow-x:auto}
+.navlinks a{color:var(--t3);text-decoration:none;font-size:14px;padding:6px 12px;
+  border-radius:20px;white-space:nowrap;transition:all .2s}
+.navlinks a:hover{color:var(--ink);background:var(--surface-2)}
+.navlinks a.active{color:#fff;background:var(--ink)}
+
+/* ===== 入场动画（无JS时全部可见） ===== */
+.js .rv{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .rv.on{opacity:1;transform:none}
+
+/* ===== 封面 ===== */
+.hero{min-height:100vh;padding:calc(var(--nav-h) + 60px) 24px 70px;
+  background:var(--navy-grad);color:#E6EEF6;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center}
+.hero::before{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:56px 56px;pointer-events:none}
+.hero::after{content:"";position:absolute;right:-160px;top:-160px;width:520px;height:520px;
+  border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.16),transparent 65%)}
+.hero-in{max-width:var(--maxw);margin:0 auto;position:relative;z-index:2;width:100%}
+.hero .badge{display:inline-block;border:1px solid rgba(255,255,255,.4);
+  padding:7px 22px;border-radius:30px;font-size:14px;letter-spacing:4px;color:#BFE3F7;margin-bottom:34px}
+.hero h1{font-size:clamp(42px,6.5vw,76px);color:#fff;font-weight:900;letter-spacing:2px;line-height:1.15}
+.hero h1 span{color:#7DD3FC}
+.hero .sub{font-size:clamp(18px,2.4vw,26px);color:#C8DCEC;margin-top:16px;letter-spacing:2px}
+.hero .meta{margin-top:38px;font-size:15px;color:#9FB8CC;display:flex;gap:28px;flex-wrap:wrap}
+.hero .meta b{color:#E6EEF6;font-weight:600}
+.hero .chips{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+.hero .chip{border:1px solid rgba(125,211,252,.45);color:#BAE6FD;background:rgba(14,90,138,.28);
+  padding:6px 16px;border-radius:6px;font-size:14px;letter-spacing:1px}
+.scroll-hint{margin-top:56px;color:#7FA6C4;font-size:13px;letter-spacing:3px}
+.scroll-hint::after{content:"↓";display:block;font-size:18px;margin-top:6px;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+/* ===== 演说逻辑主线 ===== */
+.logic{background:var(--surface);border-bottom:1px solid var(--line)}
+.logic-in{max-width:var(--maxw);margin:0 auto;padding:46px 24px}
+.logic-title{text-align:center;font-size:14px;letter-spacing:5px;color:var(--t3);margin-bottom:26px}
+.logic-title b{color:var(--ink)}
+.logic-steps{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center}
+.lstep{flex:1;min-width:170px;max-width:210px;text-decoration:none;background:var(--bg);
+  border:1px solid var(--line);border-radius:var(--radius);padding:16px 14px;text-align:center;
+  position:relative;transition:all .25s;display:block}
+.lstep:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+.lstep .no{font-size:12px;color:var(--blue);font-weight:700;letter-spacing:2px}
+.lstep .t{font-size:16px;font-weight:700;color:var(--ink);margin:4px 0 2px}
+.lstep .q{font-size:12.5px;color:var(--t3)}
+.larrow{align-self:center;color:var(--line-2);font-size:20px;padding:0 8px;flex:0 0 auto}
+
+/* ===== 章节通用 ===== */
+.chapter{padding:88px 24px 30px}
+.chapter.alt{background:var(--surface)}
+.wrap{max-width:var(--maxw);margin:0 auto}
+.ch-head{display:flex;align-items:flex-start;gap:22px;margin-bottom:14px}
+.ch-num{font-size:64px;font-weight:900;line-height:1;color:transparent;
+  -webkit-text-stroke:1.5px rgba(3,105,161,.45);font-family:Arial,sans-serif;flex:0 0 auto}
+.ch-kicker{font-size:13px;letter-spacing:4px;color:var(--blue);font-weight:700;margin-bottom:6px}
+.ch-title{font-size:clamp(26px,3.4vw,36px);font-weight:800}
+.ch-ask{display:inline-block;margin-top:8px;font-size:14px;color:var(--t3);
+  background:var(--surface-2);border-radius:6px;padding:4px 14px}
+.chapter.alt .ch-ask{background:var(--bg)}
+.ch-ask b{color:var(--blue)}
+.ch-lede{max-width:860px;color:var(--t2);margin:10px 0 34px;font-size:16.5px}
+.sub-h{display:flex;align-items:center;gap:12px;margin:44px 0 18px}
+.sub-h .bar{width:5px;height:22px;background:var(--blue);border-radius:3px;flex:0 0 auto}
+.sub-h h3{font-size:22px;font-weight:800}
+.sub-h .tag{font-size:12.5px;color:var(--t3);border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+h4.mini{font-size:17px;margin:26px 0 10px;color:var(--ink)}
+p.para{margin-bottom:14px;max-width:920px}
+
+/* ===== 卡片 ===== */
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:24px;box-shadow:var(--shadow);transition:all .25s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.chapter.alt .card{background:var(--bg)}
+.card h4{font-size:17.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card .idx{width:26px;height:26px;border-radius:7px;background:var(--ink);color:#fff;
+  font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:700}
+.card p{font-size:14.5px;color:var(--t2)}
+.card .foot{margin-top:10px;font-size:13px;color:var(--t3);border-top:1px dashed var(--line);padding-top:8px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pill{font-size:13px;background:var(--blue-soft);color:#075985;border-radius:6px;padding:3px 10px}
+.pill.gray{background:var(--surface-2);color:var(--t2)}
+.pill.green{background:var(--good-soft);color:#0B6B4C}
+.pill.amber{background:var(--warn-soft);color:#92500A}
+
+/* ===== 链条（换乘/穿透/流程） ===== */
+.chain{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;margin:18px 0}
+.chain .node{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;
+  padding:10px 16px;font-size:14.5px;font-weight:600;color:var(--ink);text-align:center;
+  display:flex;flex-direction:column;justify-content:center;min-width:96px}
+.chain .node small{font-weight:400;color:var(--t3);font-size:12px}
+.chain .arr{align-self:center;padding:0 7px;color:var(--t3);font-size:16px}
+.chain .node.hot{border-color:var(--bad);background:var(--bad-soft)}
+.chain .node.key{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 0 0 3px rgba(3,105,161,.12)}
+.chain .node.good{border-color:var(--good);background:var(--good-soft)}
+
+/* ===== 场景树 ===== */
+.tree{display:flex;gap:0;background:var(--navy-grad);border-radius:var(--radius-lg);
+  padding:34px 30px;color:#DCE9F4;overflow:hidden;position:relative}
+.tree::before{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none}
+.trunk{flex:0 0 210px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+.trunk .box{background:rgba(255,255,255,.10);border:1px solid rgba(125,211,252,.5);
+  border-radius:12px;padding:18px;text-align:center}
+.trunk .box b{display:block;color:#fff;font-size:19px;letter-spacing:2px}
+.trunk .box span{font-size:12.5px;color:#A9CBE3}
+.branches{flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;position:relative;z-index:2}
+.branch{display:flex;align-items:center;gap:0}
+.branch .link{width:34px;height:2px;background:rgba(125,211,252,.55);flex:0 0 auto}
+.branch .b-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
+  border-radius:10px;padding:12px 16px;flex:1}
+.branch .b-box b{color:#7DD3FC;font-size:15px}
+.branch .leaves{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.branch .leaf{font-size:12.5px;background:rgba(14,165,122,.18);border:1px solid rgba(52,211,153,.4);
+  color:#A7F3D0;border-radius:6px;padding:2px 10px}
+.branch .leaf.sky{background:rgba(14,90,138,.30);border-color:rgba(125,211,252,.4);color:#BAE6FD}
+
+/* ===== 表格 ===== */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin:16px 0;background:var(--surface)}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+.tbl th{background:var(--ink);color:#fff;text-align:left;padding:11px 14px;font-size:13.5px;
+  letter-spacing:1px;white-space:nowrap}
+.tbl td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:top;color:var(--t2);line-height:1.7}
+.tbl tr:nth-child(even) td{background:#FAFCFE}
+.tbl tr:hover td{background:var(--blue-soft)}
+.tbl td b{color:var(--ink)}
+.tbl .code{font-family:Consolas,monospace;color:var(--blue);font-weight:700;white-space:nowrap}
+.tbl .dia{color:var(--warn);font-weight:700}
+
+/* ===== 预警流程 ===== */
+.warnflow{display:flex;gap:0;flex-wrap:wrap;align-items:stretch;margin:20px 0}
+.wstep{flex:1;min-width:220px;border-radius:var(--radius-lg);padding:20px;position:relative}
+.wstep .lv{font-size:13px;font-weight:800;letter-spacing:2px;margin-bottom:6px}
+.wstep h5{font-size:17px;color:var(--ink);margin-bottom:6px}
+.wstep p{font-size:14px}
+.wstep.l1{background:var(--warn-soft);border:1px solid #F0CD9A}
+.wstep.l1 .lv{color:var(--warn)}
+.wstep.l2{background:var(--bad-soft);border:1px solid #F0B4B4}
+.wstep.l2 .lv{color:var(--bad)}
+.warr{align-self:center;padding:0 10px;color:var(--t3);font-size:18px}
+
+/* ===== KPI ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:8px 0 30px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:22px;text-align:center;box-shadow:var(--shadow)}
+.kpi .num{font-size:38px;font-weight:900;color:var(--blue);line-height:1.1;font-family:Arial,sans-serif}
+.kpi .num small{font-size:18px}
+.kpi .lab{font-size:13.5px;color:var(--t3);margin-top:6px}
+
+/* ===== 列表 ===== */
+.ck-list{list-style:none;margin:10px 0}
+.ck-list li{padding:8px 0 8px 30px;position:relative;font-size:15px;border-bottom:1px dashed var(--line)}
+.ck-list li::before{content:"";position:absolute;left:6px;top:17px;width:8px;height:8px;
+  border-radius:2px;background:var(--blue)}
+.ck-list li:last-child{border-bottom:none}
+.num-list{counter-reset:nl;list-style:none;margin:10px 0}
+.num-list li{counter-increment:nl;padding:10px 0 10px 46px;position:relative;font-size:15px;
+  border-bottom:1px dashed var(--line)}
+.num-list li::before{content:counter(nl);position:absolute;left:0;top:11px;width:28px;height:28px;
+  border-radius:8px;background:var(--blue-soft);color:var(--blue);font-weight:800;font-size:14px;
+  display:flex;align-items:center;justify-content:center}
+.num-list li:last-child{border-bottom:none}
+
+/* 章内小节锚点导航 */
+.subnav{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 6px}
+.subnav a{font-size:13.5px;color:var(--t2);text-decoration:none;border:1px solid var(--line-2);
+  border-radius:18px;padding:5px 16px;background:var(--surface);transition:all .2s}
+.subnav a:hover{border-color:var(--blue);color:var(--blue)}
+.subnav a b{color:var(--blue)}
+
+/* ===== 页脚 ===== */
+.footer{margin-top:90px;background:var(--navy-grad);color:#B9D2E6;padding:64px 24px;text-align:center}
+.footer .big{font-size:26px;color:#fff;font-weight:800;letter-spacing:6px;margin-bottom:14px}
+.footer p{font-size:14px;letter-spacing:1px}
+.footer .line{width:60px;height:3px;background:#7DD3FC;margin:0 auto 20px;border-radius:2px}
+
+/* 返回顶部 */
+.toTop{position:fixed;right:26px;bottom:26px;width:44px;height:44px;border-radius:50%;
+  background:var(--ink);color:#fff;border:none;font-size:18px;cursor:pointer;z-index:90;
+  opacity:0;pointer-events:none;transition:all .3s;box-shadow:var(--shadow-lg)}
+.toTop.show{opacity:.92;pointer-events:auto}
+.toTop:hover{background:var(--blue)}
+
+@media(max-width:860px){
+  .g3,.g4,.g5{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .tree{flex-direction:column;gap:20px}
+  .trunk{flex:1}
+  .branch .link{width:18px}
+  .ch-num{font-size:44px}
+}
+@media(max-width:560px){
+  .g2,.g3,.g4,.kpis{grid-template-columns:1fr}
+  .brand span{display:none}
+}
+@media print{
+  .topnav,.progress,.toTop,.scroll-hint{display:none}
+  .hero{min-height:auto;padding:40px}
+  .chapter{padding:30px 24px}
+  .js .rv{opacity:1 !important;transform:none !important}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<nav class="topnav">
+  <div class="topnav-in">
+    <div class="brand">边缘智算<em>·</em>决策直达 <span style="color:var(--t3);font-weight:400;font-size:13px">| 宣讲展示</span></div>
+    <div class="navlinks" id="navlinks">
+      <a href="#cover">封面</a>
+      <a href="#ch1">一·背景</a>
+      <a href="#ch2">二·痛点</a>
+      <a href="#ch3">三·方案</a>
+      <a href="#ch4">四·效果</a>
+      <a href="#ch5">五·推广</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= 封面 ================= -->
+<header class="hero" id="cover">
+  <div class="hero-in">
+    <div class="badge rv">AI 创新应用大赛 · AI 普及应用类</div>
+    <h1 class="rv">边缘智算<span>·</span>决策直达</h1>
+    <div class="sub rv">云边协同架构下的 AI 落地路径</div>
+    <div class="meta rv">
+      <div>个人作品 · <b>AI 架构师</b></div>
+      <div>方向定位：<b>边缘计算与边缘应用</b></div>
+    </div>
+    <div class="chips rv">
+      <span class="chip">边缘计算</span>
+      <span class="chip">上下文即资产</span>
+      <span class="chip">AI 封装 · 全员平权</span>
+      <span class="chip">所有数据只录入一遍</span>
+    </div>
+    <div class="scroll-hint rv">向下滚动 · 开始宣讲</div>
+  </div>
+</header>
+
+<!-- ================= 演说逻辑主线 ================= -->
+<section class="logic">
+  <div class="logic-in">
+    <div class="logic-title rv">宣 讲 逻 辑 主 线 —— <b>五个环节，一条因果链</b></div>
+    <div class="logic-steps">
+      <a class="lstep rv" href="#ch1"><div class="no">PART 01</div><div class="t">背景与场景</div><div class="q">我们为什么做</div></a>
+      <div class="larrow">→</div>
+      <a class="lstep rv" href="#ch2"><div class="no">PART 02</div><div class="t">痛点剖析</div><div class="q">问题卡在哪里</div></a>
+      <div class="larrow">→</div>
+      <a class="lstep rv" href="#ch3"><div class="no">PART 03</div><div class="t">解决方案</div><div class="q">我们怎么破解</div></a>
+      <div class="larrow">→</div>
+      <a class="lstep rv" href="#ch4"><div class="no">PART 04</div><div class="t">预期效果</div><div class="q">投入值不值得</div></a>
+      <div class="larrow">→</div>
+      <a class="lstep rv" href="#ch5"><div class="no">PART 05</div><div class="t">实施与推广</div><div class="q">方案能走多远</div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第一章 背景 ================= -->
+<section class="chapter" id="ch1">
+  <div class="wrap">
+    <div class="ch-head rv">
+      <div class="ch-num">01</div>
+      <div>
+        <div class="ch-kicker">PART 01 · 背景与场景</div>
+        <h2 class="ch-title">参赛背景与场景描述</h2>
+        <div class="ch-ask">本环节回答：<b>我们是谁、业务长什么样、AI 落在哪棵树上</b></div>
+      </div>
+    </div>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>1.1 企业背景与业务特征</h3></div>
+    <p class="para rv">公司公司主营业务涵盖<strong>地质勘查、地质灾害防治、工程施工（房建、市政、桩基、隧道等）、生态修复</strong>等多个关键领域，承担地质灾害应急救援社会责任——梅汛台风期间需派驻多组专业人员深入山区乡镇开展现场排查；工程施工项目则呈现出鲜明的行业特征：</p>
+    <div class="pill-row rv">
+      <span class="pill">项目分布广</span><span class="pill">现场环境复杂</span><span class="pill">管理链条长</span>
+      <span class="pill">野外作业多</span><span class="pill">应急响应时效高</span>
+    </div>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>1.2 “一棵无限生长的场景树”业务架构</h3></div>
+    <p class="para rv">企业级 AI 的应用探索，不是把 AI 局限在某个单一孤岛场景，而是构建一棵<strong>“可无限生长的场景树”</strong>：</p>
+    <div class="tree rv">
+      <div class="trunk">
+        <div class="box">
+          <b>OA 系统 · 树干</b>
+          <span>结构化结果总览展示<br>基于公司 Context 的全局智能检索<br>跨项目汇总分析与风险预警</span>
+        </div>
+        <p style="font-size:12.5px;color:#A9CBE3;margin-top:12px">只做“果实”展示与综合调度，不承担繁重 AI 计算，不上传海量原始大文件。</p>
+      </div>
+      <div class="branches">
+        <div class="branch"><div class="link"></div>
+          <div class="b-box"><b>地质灾害类（树枝）</b>
+            <div class="leaves"><span class="leaf">边坡风险评估</span><span class="leaf">滑坡隐患排查</span><span class="leaf">泥石流预警</span><span class="leaf">地面沉降监测</span></div>
+          </div>
+        </div>
+        <div class="branch"><div class="link"></div>
+          <div class="b-box"><b>工程施工类（树枝）</b>
+            <div class="leaves"><span class="leaf sky">施工（桩基）工序验收</span><span class="leaf sky">主体结构隐蔽工程归档</span><span class="leaf sky">创优夺杯全周期管理</span></div>
+          </div>
+        </div>
+        <div class="branch"><div class="link"></div>
+          <div class="b-box"><b>综合管理类（树枝）</b>
+            <div class="leaves"><span class="leaf">合同条款智能解析</span><span class="leaf">安全隐患 AI 识别</span><span class="leaf">工程资料自动归档</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="para rv" style="margin-top:14px;font-size:14.5px;color:var(--t3)">遵循边缘接入规范，一线业务场景可快速挂载与扩展——挂载的轻量化移动小程序称为“叶子”，借助 AI（根据需求文档）可快速形成拓展叶子接入 OA。</p>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>1.3 核心流转特征</h3><span class="tag">数据在一线产生 · 计算在一线完成 · 结果决策直达</span></div>
+    <div class="chain rv">
+      <div class="node">一线人员<small>地质队员 / 施工员 / 检测员</small></div><div class="arr">→</div>
+      <div class="node">现场采集<small>小程序 / 桌面工具</small></div><div class="arr">→</div>
+      <div class="node key">边缘即时计算<small>原始数据不出场</small></div><div class="arr">→</div>
+      <div class="node">结构化结果<small>标准化中间/最终结果</small></div><div class="arr">→</div>
+      <div class="node good">公司 OA 直达<small>信息“零换乘”</small></div>
+    </div>
+    <p class="para rv">管理层与一线各取所需——这是全部业务场景高度统一的数据流转逻辑。</p>
+  </div>
+</section>
+
+<!-- ================= 第二章 痛点 ================= -->
+<section class="chapter alt" id="ch2">
+  <div class="wrap">
+    <div class="ch-head rv">
+      <div class="ch-num">02</div>
+      <div>
+        <div class="ch-kicker">PART 02 · 痛点剖析</div>
+        <h2 class="ch-title">现状痛点深度剖析</h2>
+        <div class="ch-ask">本环节回答：<b>AI 为什么“宣传喊得响、普及不起来”</b></div>
+      </div>
+    </div>
+    <p class="ch-lede rv">部分员工对快速迭代的 AI 软件难以适应、逐渐掉队；另一部分员工虽已运用各类成熟大模型工具提高了个人效率，但<strong>组织级整体生产效率并未发生质的飞跃</strong>。问题在于“信息流转层的多级换乘”与“AI 架构层的集中式大模型缺陷”两者叠加。</p>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>2.1 信息流转层：多级“换乘”，效率重度衰减</h3></div>
+    <h4 class="mini rv">（1）指令层层下发，信息逐级衰减失真 —— 数据流转达 6 跳</h4>
+    <div class="chain rv">
+      <div class="node">公司</div><div class="arr">→</div>
+      <div class="node">分子公司</div><div class="arr">→</div>
+      <div class="node">部门</div><div class="arr">→</div>
+      <div class="node">项目部</div><div class="arr">→</div>
+      <div class="node hot">资料员 / 施工员<small>4-5 层传递 · 6 跳</small></div>
+    </div>
+    <p class="para rv">每一层均需经历“接收—理解—手动检索—核验—汇总—上报”，耗时时间长；多级传递导致信息严重丢包与变形，组织反应慢。</p>
+    <div class="grid g2">
+      <div class="card rv"><h4><span class="idx">2</span>数据分层需求严重错配</h4>
+        <p>公司管理层需要宏观掌控（创优完成率、整体进度、合格率、安全风险），但现有系统往往只能提供<strong>未经计算的碎片化微观记录</strong>，缺乏自动向上提炼汇总的中间层结果；项目基层需要精细化工序管理，但现场填报数据后无自动汇总机制，仍需人工二次整理再逐级上报。</p></div>
+      <div class="card rv"><h4><span class="idx">3</span>资料真实性存疑，事后突击补填成常态</h4>
+        <p>野外日志、工序验收记录存在大量<strong>事后回忆补填</strong>现象，内容相似、节点错位，缺少实时约束与交叉验证机制；发生质量或安全争议时难以精准溯源。</p></div>
+    </div>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>2.2 AI 架构层：集中式大模型 Agent 的四大生产顽疾</h3></div>
+    <p class="para rv">行业常见的“集中式”路线（所有数据与推理全集中到云端长链路 Agent）在生产环境中面临四大致命顽疾：</p>
+    <div class="tbl-wrap rv">
+      <table class="tbl">
+        <thead><tr><th style="width:22%">顽疾类型</th><th style="width:40%">表现特征</th><th>对企业业务的影响</th></tr></thead>
+        <tbody>
+          <tr><td><b>1 长程记忆衰减</b><br><span style="color:var(--t3);font-size:12.5px">Context Overflow</span></td>
+            <td>执行步骤增加，上下文窗口被历史对话挤满，最早的初始指令与约束被自动截断抛弃。<b>行业数据显示，上下文溢出是 Agent 失败的首要原因，占比 43%。</b></td>
+            <td>执行到第 15 步时已抛弃初始目标，输出偏离业务初衷，跑了很久却答非所问。</td></tr>
+          <tr><td><b>2 幻觉级联</b><br><span style="color:var(--t3);font-size:12.5px">Hallucination Cascade</span></td>
+            <td>步骤 A 产生的微小推理错误被作为“已验证事实”存入上下文，在后续步骤 B、C 中被成倍放大与引用。</td>
+            <td>最终报表表面严密，实际底层数据偏差达 30% 以上，错误隐蔽且极难追溯审计，带来重大决策风险。</td></tr>
+          <tr><td><b>3 计算资源沉没</b><br><span style="color:var(--t3);font-size:12.5px">Tool Call Spiral</span></td>
+            <td>Agent 为解决中间环节的格式报错或微小异常，陷入反复调用工具与重试的死循环。</td>
+            <td>消耗大量 Token 与算力，耗时极长却无法给出结果，在急需决断的应急排查场景下尤为致命。</td></tr>
+          <tr><td><b>4 认知门槛断层</b><br><span style="color:var(--t3);font-size:12.5px">Accessibility Gap</span></td>
+            <td>大模型要求使用者具备提示词工程编写能力、逻辑拆解能力及 AI 幻觉辨别能力。</td>
+            <td>现场老职工等一线人员无法掌握，AI 成为少数人的工具，全员普及率低。</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第三章 方案 ================= -->
+<section class="chapter" id="ch3">
+  <div class="wrap">
+    <div class="ch-head rv">
+      <div class="ch-num">03</div>
+      <div>
+        <div class="ch-kicker">PART 03 · 解决方案</div>
+        <h2 class="ch-title">AI 赋能解决方案</h2>
+        <div class="ch-ask">本环节回答：<b>理念 → 路径 → 原则 → 场景 → 机制，五步讲透怎么破</b></div>
+      </div>
+    </div>
+    <p class="ch-lede rv">针对上述痛点，方案提出<strong>“边缘智算·决策直达”</strong>的云边协同架构：摒弃庞大不可控的云端长链路 Agent，将计算力下沉至离业务最近的边缘终端，以<strong>“轻量化工具＋确定性算法”</strong>保障精准度，以<strong>“公司 Context＋直达调取”</strong>破除信息换乘。</p>
+
+    <div class="subnav rv">
+      <a href="#s31"><b>3.1</b> 三大核心理念</a>
+      <a href="#s32"><b>3.2</b> 技术路径</a>
+      <a href="#s33"><b>3.3</b> 数据只录入一遍</a>
+      <a href="#s34"><b>3.4</b> 核心应用场景</a>
+      <a href="#s35"><b>3.5</b> 分级预警机制</a>
+    </div>
+
+    <!-- 3.1 -->
+    <div class="sub-h rv" id="s31"><div class="bar"></div><h3>3.1 三大核心理念</h3></div>
+    <div class="grid g3">
+      <div class="card rv"><h4><span class="idx">1</span>减少换乘</h4>
+        <p><strong>破除信息流转换乘：</strong>“现场一次录入 → 系统自动分层分类汇总 → 公司直达调取”，打破逐级上报环节，实现数据只录一次。</p>
+        <p style="margin-top:8px"><strong>破除算力架构换乘：</strong>用“边缘确定性计算”取代“云端长链路 Agent 的多步跳转”，减少无效算力损耗。</p></div>
+      <div class="card rv"><h4><span class="idx">2</span>上下文即资产</h4>
+        <p><strong>Context is Asset。</strong>将公司 OA 中积累的项目合同、创优计划、历史地质资料转化为 AI 可调用的上下文，让 AI 基于真实业务上下文回答问题，解决无上下文导致的“答非所问”与“凭空捏造”，激活沉睡的数据资产。</p></div>
+      <div class="card rv"><h4><span class="idx">3</span>AI 封装</h4>
+        <p>将复杂计算模型封装为便捷交互（选项勾选、表格填空、拍照上传、语音输入），<strong>无需编写任何 Prompt</strong>，让一线老职工打开就会用，真正实现全员 AI 化。</p>
+        <div class="foot">零提示词 · 零额外操作 · 零学习成本</div></div>
+    </div>
+    <div class="card rv" style="margin-top:18px;border-left:4px solid var(--blue)">
+      <h4>AI 封装的具体含义：一线人员不做任何“AI 操作”</h4>
+      <p>不编写提示词、不点击“让 AI 分析”按钮，只需在系统封装好的表单中填写数量，或对准现场、样板、资料拍照；<strong>识别、计算、比对、研判、文档生成全部在后台自动完成</strong>。以浇筑工序为例，老员工照单完成拍照、填数，系统即自动完成 A~G 资料归类、编号与桩号绑定（详见 3.3 节质量条线）——不会使用 AI 工具的老员工同样打开即用，实现 <strong>AI 平权、全员普及</strong>。</p>
+    </div>
+
+    <!-- 3.2 -->
+    <div class="sub-h rv" id="s32"><div class="bar"></div><h3>3.2 避开重度开发壁垒的技术路径</h3></div>
+    <div class="chain rv">
+      <div class="node">轻量化前端<small>小程序 / 桌面端</small></div><div class="arr">＋</div>
+      <div class="node key">确定性算法组件<small>不依赖云端推理</small></div><div class="arr">＋</div>
+      <div class="node good">公司 OA 结果承载<small>结构化数据上云</small></div>
+    </div>
+    <p class="para rv">不开发重型大模型平台，不采购昂贵算力集群。开发部署成本极低，各模块独立解耦、可快速复制。</p>
+
+    <!-- 3.3 -->
+    <div class="sub-h rv" id="s33"><div class="bar"></div><h3>3.3 核心原则：所有数据只录入一遍</h3><span class="tag">方案基石</span></div>
+    <p class="para rv">所有数据<strong>只在产生的源头录入一遍</strong>：一线人员不再二次填表、不再重复抄录、不再逐级电话催收。数据录入之后，系统自动完成四件事：</p>
+    <div class="grid g4">
+      <div class="card rv"><h4>① 自动生成文档</h4><p>调研报告、技术交底记录、施工日志等在录入完成时即生成。</p></div>
+      <div class="card rv"><h4>② 自动分类归档</h4><p>按统一编码规则自动拆分归类，进入系统即为结构化数据。</p></div>
+      <div class="card rv"><h4>③ 自动关联比对</h4><p>以设计总量、计划进度、样板标准为基准，自动算完成率、识别偏差。</p></div>
+      <div class="card rv"><h4>④ 自动分层呈现</h4><p>项目部看细节、分子公司看态势、公司看汇总指标，各取所需。</p></div>
+    </div>
+    <p class="para rv" style="margin-top:14px">该原则落地为以下<strong>四条业务条线</strong>。</p>
+
+    <h4 class="mini rv">（一）地质调查条线：现场录入一遍，调研报告当场生成</h4>
+    <p class="para rv">地质队员野外现场的观察、量测、编录、拍照等调查数据只需录入一遍，系统即在本地完成结构化处理并套用规范模板，直接生成《现场调研报告》《探查报告》。改变以往“现场手写记录、回办公室誊写、再行成稿”的重复劳动——<strong>一份报告由大半天压缩至现场即出</strong>，且报告与原始数据同源，永久可溯。</p>
+
+    <h4 class="mini rv">（二）合同与创优条线：合同上传一遍，按编码自动拆分为 A、B、C、D</h4>
+    <p class="para rv">合同通过边缘工具上传时，系统先做拆解，按与质量管控相一致的统一编码规则自动分类，每个字段赋予唯一编码，便于检索、汇总与跨项目对比：</p>
+    <div class="tbl-wrap rv">
+      <table class="tbl">
+        <thead><tr><th style="width:26%">字段编码</th><th style="width:30%">自动归类内容</th><th>拆完之后怎么用</th></tr></thead>
+        <tbody>
+          <tr><td><b>A 工程类别</b><br><span class="code">A01 桩基 / A02 市政 / A03 房建<br>A04 多田套合 / A99 其他</span></td>
+            <td>自动识别工程类型，归入对应编码</td>
+            <td>公司按编码查看项目结构：桩基、市政、房建、多田套合各多少个，分类汇总一目了然。</td></tr>
+          <tr><td><b>B 金额分类</b><br><span class="code">B01 1500万以下 / B02 1500万及以上</span></td>
+            <td>按合同造价自动归入金额档位（分档阈值可配置）</td>
+            <td>按金额规模分档统计，支撑项目分级管控。</td></tr>
+          <tr><td><b>C 创优夺杯</b><br><span class="code">C01 无 / C02 地方 / C03 省级（钱江杯）<br>C04 国家级（鲁班奖）</span></td>
+            <td>提取合同附带的创优条款（如造价 1500 万元以上项目按当地规定须具备创优要求），自动判定 C 档</td>
+            <td>自动进入全公司创优台账：检索“创优夺杯”即可查看哪些项目负有创优要求、属于哪一档次、申报进展到哪一步，无需另行发文统计。</td></tr>
+          <tr><td><b>D 其他要素</b><br><span class="code">D01 工期 / D02 质量 / D03 安全 / D04 材料总量</span></td>
+            <td>提取工期、质量、安全、材料总量等条款，分别归入 D 子编码</td>
+            <td>分别供进度、质量、安全、材料消耗各条线按编码自动关联调用。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4 class="mini rv">（三）技术条线：方案录一遍，审核、交底、执行一条链贯通</h4>
+    <div class="chain rv">
+      <div class="node">方案编制录入<small>仅一遍</small></div><div class="arr">→</div>
+      <div class="node">线上审核流转<small>意见全程留痕</small></div><div class="arr">→</div>
+      <div class="node">自动触发交底<small>现场及 CAD 图拍照</small></div><div class="arr">→</div>
+      <div class="node good">记录自动生成<small>影像同步归档</small></div>
+    </div>
+    <p class="para rv">方案、交底、现场执行一一对应、全程可追溯；管理层可直接查看各项目<strong>方案审核率、技术交底到位率</strong>，有效解决方案与现场“两张皮”问题。</p>
+
+    <h4 class="mini rv">（四）质量条线：以进度与质量为核心的项目管控</h4>
+    <p class="para rv">对项目的管控，核心看两件事：<strong>进度干到哪一步、质量干得怎么样</strong>。四类源头数据各录一遍，系统自动成账、自动预警。</p>
+    <div class="grid g2">
+      <div class="card rv"><h4><span class="idx">1</span>材料送检 —— 送检一次即自动成账</h4>
+        <p>混凝土试块、钢筋原材等送检结果上传一遍，现场材料质量台账自动形成，合格与不合格状态实时可见，无需翻阅纸质检测报告，<strong>不合格批次自动预警</strong>。</p></div>
+      <div class="card rv"><h4><span class="idx">2</span>样板引路 —— 先定标准段、后续照样板对标</h4>
+        <p>每道工序大面积施工前先做出模范样板（标准段）拍照定标；后续每次施工质量均与样板对比，系统客观呈现达标、超标、不达标状态。<strong>奖励与处罚由项目部自行决定、自行执行</strong>，系统只负责让质量看得见、可对标，不内置奖罚规则。</p></div>
+      <div class="card rv"><h4><span class="idx">3</span>材料消耗 —— 消耗量即最真实的进度表</h4>
+        <p>开工时设计文件、概算及投标报价中的混凝土方量、钢筋量录入一遍形成总量基准（亦可由合同 <span class="mono">D04</span> 编码自动带入）；施工中每日进场量、实际使用量随施工日志录入一遍，系统自动累计并计算剩余量与完成率——<strong>例如钢筋已用 487 吨、总量 500 吨，完成率即为 97.4%</strong>。无需询问项目经理即可真实掌握进度；用量与计划明显偏离（如钢筋笼正常每周消耗 7—8 吨、某周突然停滞归零）即自动预警。智慧工地“实测实量”数据由项目部自行上传，<strong>公司端只看数据、只调取数据</strong>，不干预一线录入。</p></div>
+      <div class="card rv"><h4><span class="idx">4</span>工序验收 —— 要“质量状态”而非“资料堆”</h4>
+        <p>各工序按节点逐道举牌拍照上传（A 地基整平、B 钢筋笼、C 模板支设、D 混凝土浇筑等，每完成一道拍一次），系统按工序节点自动串联，直接回答<strong>“项目进行到哪一步、这一步质量怎么样”</strong>。管理层要的不是纸质资料本身，而是每道工序的真实质量水平（钢筋笼间距、保护层厚度是否达标）。</p></div>
+    </div>
+
+    <h4 class="mini rv">（五）工程信息直达系统：四类数据背后的统一骨架</h4>
+    <p class="para rv">四类数据并非彼此孤立，而是依托<strong>“工程信息直达系统”</strong>统一组织、自动归位——知道编号即可一跳直达调取，无需逐级转发。系统由<strong>六级层级、八大核心实体、九阶段标准工序链、A~G 七类资料编码、八道交叉验证、五种直达查询</strong>构成。</p>
+
+    <p class="para rv" style="margin-bottom:6px"><strong>① 六级穿透与统一编号</strong>（★ 工序节点为全系统核心枢纽）</p>
+    <div class="chain rv">
+      <div class="node">公司</div><div class="arr">→</div>
+      <div class="node">项目<small>Project</small></div><div class="arr">→</div>
+      <div class="node">子工程<small>SubProject</small></div><div class="arr">→</div>
+      <div class="node">作业对象<small>WorkObject</small></div><div class="arr">→</div>
+      <div class="node key">工序节点★<small>ProcessNode</small></div><div class="arr">→</div>
+      <div class="node">资料记录<small>Document</small></div>
+    </div>
+    <p class="para rv">项目示例 <span class="mono">DZ2026-001</span>（大庄项目）；子工程以 <span class="mono">-ZJ 桩基 / -ZT 主体 / -ZS 装饰 / -JD 机电</span> 区分；作业对象按 <span class="mono">桩 Z / 柱 KZ / 梁 KL / 板 B / 墙 Q</span> 编号；工序节点分 <span class="mono">CK 成孔 / YB 隐蔽 / JZ 浇筑 / JC 检测</span> 等；资料末尾再带 A~G 类别码。完整编号 <span class="mono" style="color:var(--blue);font-weight:700">DZ2026-001-ZT-1F-KZ01-JZ01</span> 即“大庄项目主体工程一层 1 号柱的浇筑工序”，其下试块资料编号为 <span class="mono">……JZ01-F001</span>——做到<strong>“车同轨、书同文”</strong>。</p>
+
+    <p class="para rv" style="margin-bottom:6px"><strong>② 八大核心实体</strong>（工序节点为枢纽：资料挂节点、节点属对象、对象属子工程、子工程属项目）</p>
+    <div class="tbl-wrap rv">
+      <table class="tbl">
+        <thead><tr><th style="width:24%">核心实体</th><th>管理对象（定义）</th></tr></thead>
+        <tbody>
+          <tr><td><b>Project 项目</b></td><td>项目主数据：工程名称、房建/市政/桩基等类型、所属分子公司、地点与 GPS 范围、开竣工日期、项目经理</td></tr>
+          <tr><td><b>SubProject 子工程</b></td><td>项目内阶段划分：桩基、主体、装饰、机电，带施工顺序号与阶段状态</td></tr>
+          <tr><td><b>WorkObject 作业对象</b></td><td>工序的载体：每根桩、柱、梁、板、墙、基坑均独立编号，带设计参数（桩径桩长、混凝土强度等级）与计划、实际时间</td></tr>
+          <tr><td><b>ProcessNode 工序节点（核心枢纽）</b></td><td>成孔、隐蔽、浇筑、检测等每道工序，区分一般工序、验收工序、检测工序，记录是否需监理到场、施工与监理人员、通过或不通过状态</td></tr>
+          <tr><td><b>Document 资料记录</b></td><td>每份照片、记录、报告均带 A~G 类别码、GPS 定位、拍摄时间戳、上传人与审核状态，冗余存储项目号与对象号，支持一跳直达</td></tr>
+          <tr><td><b>MaterialBatch 材料批次</b></td><td>混凝土、钢筋、水泥等每批次的规格（如 C30、HRB400 φ20）、供应商、进场量、质保书号及用于哪些作业对象</td></tr>
+          <tr><td><b>TestCube 试块</b></td><td>混凝土试块全流程：现场编号、强度等级、标养或同条件、成型日期、28 天检测强度、合格判定，挂在浇筑工序节点下</td></tr>
+          <tr><td><b>DailyLog 施工日志</b></td><td>日清日结：天气、施工内容、人机料统计、问题处理，自动关联当日全部工序节点，超时未提交自动预警</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="para rv" style="font-size:14px;color:var(--t3)">材料批次与作业对象多对多关联；试块挂具体浇筑节点；施工日志关联当日全部工序节点；资料表冗余存储项目号与对象号——查询一根桩无需逐层翻找，一跳直达。</p>
+
+    <p class="para rv" style="margin-bottom:6px"><strong>③ 房建九阶段标准工序链</strong>（每道工序明确“拍什么、传什么、谁验收”，◆ 为举牌或隐蔽等关键验收节点）</p>
+    <div class="tbl-wrap rv">
+      <table class="tbl">
+        <thead><tr><th style="width:15%">阶段</th><th style="width:27%">作业对象（编号前缀）</th><th>标准工序链</th></tr></thead>
+        <tbody>
+          <tr><td><b>0 施工准备</b></td><td>场地 SITE</td><td>场地清表 → 测量控制网建立 → <span class="dia">◆</span>控制网复核验收 → 临时设施与施工许可</td></tr>
+          <tr><td><b>1 基坑工程</b></td><td>基坑 PIT</td><td>基坑放线 → 土方分层开挖 → 支护（锚杆、土钉、桩撑）→ 降水 → <span class="dia">◆</span>槽底标高验收 → <span class="dia">◆</span>地基承载力检测 → 垫层</td></tr>
+          <tr><td><b>2 地基基础</b></td><td>桩 Z、垫层 DC、基础底板 JB、基础梁 JL、承台 CT</td><td>桩基检测（小应变）→ 桩头处理 → <span class="dia">◆</span>桩基分项验收；筏板依次为垫层 → 防水 → 底板钢筋 → <span class="dia">◆</span>钢筋隐蔽验收 → <span class="dia">◆</span>模板验收 → 浇筑 → 大体积测温养护 → <span class="dia">◆</span>基础分部验收</td></tr>
+          <tr><td><b>3 主体结构（逐层循环）</b></td><td>柱 KZ、梁 KL、板 B、剪力墙 Q、楼梯 LT</td><td>放线 → 钢筋接长绑扎 → <span class="dia">◆</span>钢筋隐蔽验收 → 模板支设 → <span class="dia">◆</span>模板验收 → 混凝土浇筑 → 养护 → 拆模 → <span class="dia">◆</span>外观尺寸检查；梁控起拱挠度、板控板厚、墙控暗柱、楼梯控踏步尺寸</td></tr>
+          <tr><td><b>4 二次结构</b></td><td>砌体墙 QT、构造柱 GZ、过梁 GL、圈梁 QL</td><td>砌体放线 → 导墙反边 → 底部三皮砌筑 → <span class="dia">◆</span>砌筑样板验收 → 中段砌筑 → 顶部斜砌 → <span class="dia">◆</span>砌筑质量检查；构造柱执行“钢筋→隐蔽→浇筑→拆模”</td></tr>
+          <tr><td><b>5 机电安装（穿插施工）</b></td><td>给排水 GP、电气 DQ、暖通 NF、消防 XF</td><td>套管预埋（绑定主体节点）→ 管道管线安装 → <span class="dia">◆</span>隐蔽验收（封堵前）→ 水压、绝缘、接地测试 → 通球通水 → <span class="dia">◆</span>系统验收</td></tr>
+          <tr><td><b>6 装饰装修</b></td><td>墙面 QM、楼地面 LM、吊顶 DD、门窗 MC</td><td>基层处理 → 甩浆挂网 → 冲筋 → 底、面层抹灰 → <span class="dia">◆</span>空鼓检查 → <span class="dia">◆</span>抹灰质量验收；楼地面控制坡度，门窗增加淋水试验</td></tr>
+          <tr><td><b>7 屋面工程</b></td><td>屋面 WM（按区域）</td><td>找平层 → 保温层 → <span class="dia">◆</span>防水层施工及隐蔽 → <span class="dia">◆</span>蓄水（淋水）试验（24 小时）→ 保护层 → <span class="dia">◆</span>屋面分部验收</td></tr>
+          <tr><td><b>8 竣工验收</b></td><td>整栋建筑 BLD</td><td>各分部验收（系统自动汇总状态）→ 竣工资料整理 → <span class="dia">◆</span>竣工预验收 → 整改闭环 → <span class="dia">◆</span>竣工验收 → 备案归档；任一节点不通过或未整改自动标红</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="para rv">每根桩、每层的每根柱、梁、板、墙都是独立作业对象，各自拥有一条独立工序链；检索 <span class="mono" style="color:var(--blue);font-weight:700">2F-KZ03</span> 即可直达二层 3 号柱从放线到拆模的全部节点与资料。竣工验收时系统自动汇总各分部、各节点状态，未通过或未整改闭环的自动标红，无需人工催收。</p>
+
+    <p class="para rv" style="margin-bottom:6px"><strong>④ 资料 A~G 七分类与“填 A 归 A”的封装单</strong>——一线人员不需要了解分类，手持按当前工序封装好的清单，逐项拍照、填数，提交后系统自动归类、编号、绑定桩号</p>
+    <div class="tbl-wrap rv">
+      <table class="tbl">
+        <thead><tr><th style="width:8%">类别</th><th style="width:48%">名称与内容</th><th>封装单上的提示（一线操作）</th></tr></thead>
+        <tbody>
+          <tr><td><b class="code">A</b></td><td><b>工序验收资料</b>：举牌验收照片（验收牌信息清晰）、成孔、隐蔽、分项、分部及竣工验收记录</td><td>“请拍举牌验收照片”，提交后自动归 A</td></tr>
+          <tr><td><b class="code">B</b></td><td><b>材料质保资料</b>：混凝土质保书与配合比单、钢筋质保书（炉号）、水泥砂石及外加剂检测报告、焊接接头报告</td><td>“请拍质保书、合格证”，提交后自动归 B</td></tr>
+          <tr><td><b class="code">C</b></td><td><b>过程检测数据</b>：坍落度、成孔数据（孔深、孔径、垂直度、沉渣）、桩基检测、抗压强度、保护层厚度、回弹取芯</td><td>“请填坍落度（毫米）”，数字自动归 C</td></tr>
+          <tr><td><b class="code">D</b></td><td><b>施工计量数据</b>：混凝土浇筑方量与充盈系数、钢筋实际用量、土方开挖方量、材料核销台账</td><td>“请填本次浇筑方量（立方米）”，自动归 D</td></tr>
+          <tr><td><b class="code">E</b></td><td><b>过程影像资料</b>：钻机就位、钢筋笼制作吊装、浇筑振捣、放样、桩头处理等带 GPS 与时间戳的过程照片</td><td>“请拍施工过程照”，自动归 E</td></tr>
+          <tr><td><b class="code">F</b></td><td><b>试块管理资料</b>：试块制作照片（含标识牌）、编号台账、标养及同条件养护记录、28 天抗压报告、合格判定</td><td>“请拍试块标识牌、填写组数”，自动归 F</td></tr>
+          <tr><td><b class="code">G</b></td><td><b>施工日志</b>：当日施工内容（按桩号、工序列示）、人机料统计、天气温度、问题处理、施工员与监理确认</td><td>晚间一张日志单一次提交，自动归 G 并关联当日工序</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card rv" style="border-left:4px solid var(--good)">
+      <h4>封装单实例：作业对象 1F-KZ01 浇筑工序</h4>
+      <p>老员工只需选择“我在浇一层 1 号柱”，照单完成：拍质保书（自动归 B）→ 填坍落度 165 毫米（归 C）→ 填方量 1.08 立方米（归 D）→ 拍浇筑振捣照（归 E）→ 拍试块标识牌（3 组标养加 1 组同条件，归 F）→ 节点举牌验收（归 A）→ 晚间提交施工日志（归 G）。<strong>全程不做一次分类动作</strong>——桩号、楼层、工序编号、A~G 归类、GPS 与时间戳全部自动完成。年纪较大的员工填写的仍是那张熟悉的单子，单子背后就是完整的工程信息直达系统。</p>
+    </div>
+
+    <p class="para rv" style="margin-bottom:6px"><strong>⑤ 八道交叉验证，上传即验证</strong>——异常当场标黄、标红，不允许问题流入下一道工序</p>
+    <ol class="num-list rv">
+      <li>照片 GPS 必须在项目范围内；</li>
+      <li>拍摄时间与工序日期偏差不超过 24 小时；</li>
+      <li>浇筑方量乘以充盈系数与材料进场量自动比对；</li>
+      <li>每次浇筑须挂不少于 3 组标养、1 组同条件试块；</li>
+      <li>施工日志超时未提交自动标黄；</li>
+      <li>日志所写桩号须与当日工序记录吻合；</li>
+      <li>验收不通过的，7 天内须有整改复验闭环；</li>
+      <li>连续多日日志相似度超过 90% 的，自动提示复制粘贴。</li>
+    </ol>
+
+    <p class="para rv" style="margin-bottom:6px"><strong>⑥ 五种直达查询，消灭中间换乘</strong></p>
+    <div class="grid g5 rv">
+      <div class="card" style="padding:16px"><h4 style="font-size:15px">按桩号</h4><p style="font-size:13.5px">一根桩（柱）的全部工序与资料时间线</p></div>
+      <div class="card" style="padding:16px"><h4 style="font-size:15px">按日期</h4><p style="font-size:13.5px">当天全项目施工内容</p></div>
+      <div class="card" style="padding:16px"><h4 style="font-size:15px">按类别</h4><p style="font-size:13.5px">全项目 A 类验收记录等自动成账</p></div>
+      <div class="card" style="padding:16px"><h4 style="font-size:15px">按创优</h4><p style="font-size:13.5px">关键词直达全公司创优台账</p></div>
+      <div class="card" style="padding:16px"><h4 style="font-size:15px">按异常</h4><p style="font-size:13.5px">系统主动推送的标黄标红清单</p></div>
+    </div>
+    <p class="para rv" style="margin-top:12px">以往“下发通知、逐级催收、汇总上报”需 <strong>3—5 天</strong>，现在搜索 <strong>3 秒</strong>即可呈现——<strong>消灭的不是人，是中间的换乘节点</strong>。</p>
+
+    <!-- 3.4 -->
+    <div class="sub-h rv" id="s34"><div class="bar"></div><h3>3.4 核心应用场景落地设计</h3></div>
+    <div class="grid g3">
+      <div class="card rv">
+        <h4>场景一 · 边坡智测<span class="pill gray" style="margin-left:auto">边缘端</span></h4>
+        <p>针对地灾应急排查及日常边坡巡查的微信小程序：<strong>野外录入 → 本地计算 → 秒级生成报告 → 结构化结果同步 OA</strong>。</p>
+        <div class="foot">
+          <p><strong>双模式研判：</strong>通用版 6 题快判（非专业人员初判）；专业版内置 AHP 层次分析法、赤平投影结构面分析、G×E×D 多源风险耦合算法，实现滑移面深度推定与四阶段演化预测。</p>
+          <p style="margin-top:6px"><strong>本地确定性计算：</strong>纯 JavaScript 本地运行，支持弱网/离线，结果 0 幻觉、可追溯。</p>
+          <p style="margin-top:6px"><strong>结构化上报：</strong>原始参数、坐标、照片留本地，仅同步 [风险等级 | 滑移面深度 | 演化阶段 | 处置建议]，高风险自动触发应急预案。</p>
+        </div>
+      </div>
+      <div class="card rv">
+        <h4>场景二 · 工序验收直达<span class="pill gray" style="margin-left:auto">边缘端</span></h4>
+        <p>针对工程资料“催收难、查找慢、真实性差”，将工序节点转化为数据采集入口。</p>
+        <div class="foot">
+          <p><strong>对象化编号：</strong>桩、柱、梁、墙独立编号（如 DZ-ZJ-1F-KZ01），每道工序即一个数据输入节点。</p>
+          <p style="margin-top:6px"><strong>七大类自动归档：</strong>A 工序验收 | B 材料质保 | C 过程检测 | D 施工计量 | E 过程影像 | F 试块管理 | G 施工日志。</p>
+          <p style="margin-top:6px"><strong>八道交叉验证：</strong>GPS＋时间戳＋方量比对＋试块匹配＋日志考勤对照，异常自动标红。</p>
+          <p style="margin-top:6px"><strong>直达调取：</strong>公司输入桩号即调全生命周期资料；管理层看“桩基验收合格率 96.3%”，项目部看施工细节。</p>
+        </div>
+      </div>
+      <div class="card rv">
+        <h4>场景三 · 合同智能分析<span class="pill gray" style="margin-left:auto">公司端</span></h4>
+        <p>激活 OA 现有文档资产，构建<strong>上下文驱动</strong>的智能检索体系。</p>
+        <div class="foot">
+          <p><strong>要素自动提取：</strong>自动解析 PDF 合同，提取创优夺杯目标、工期节点、违约责任、质量标准，按 3.3 节 A/B/C/D 编码体系自动归类，创优要求自动进入全公司创优台账。</p>
+          <p style="margin-top:6px"><strong>无幻觉智能问答：</strong>基于公司真实 Context 库检索（“今年哪个项目有创优要求？”），所有回答<strong>附带源文档出处与精确页码</strong>，有据可查。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3.5 -->
+    <div class="sub-h rv" id="s35"><div class="bar"></div><h3>3.5 分级预警机制：预警先到项目部，三次未解才到公司</h3></div>
+    <p class="para rv">系统自动发现的各类异常<strong>不直接惊动公司</strong>，先给项目部自我纠偏的机会——边坡监测与项目质量管控两类业务统一适用。</p>
+    <div class="warnflow rv">
+      <div class="wstep l1">
+        <div class="lv">一级预警</div>
+        <h5>推送项目部 · 限时处置</h5>
+        <p>边坡风险、AI 照片识别异常、材料消耗与计划进度偏离等，第一时间推送项目管理人员（项目经理），限时核查处置；<strong>规定时间内处置、回复并销项的，即行闭环，不再上送公司</strong>。</p>
+      </div>
+      <div class="warr">→ 同一问题一周内累计三次且未解除 →</div>
+      <div class="wstep l2">
+        <div class="lv">二级预警</div>
+        <h5>推送公司 · 督办跟踪</h5>
+        <p>预警自动升级，推送公司并进入<strong>公司风险看板</strong>，由公司层面督办跟踪。公司收到的均为项目部三次未能化解的硬风险——<strong>预警即督办</strong>。</p>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="card rv"><h4>例 · 地质灾害条线</h4>
+        <p>边坡小程序研判出滑塌风险或紧急预判异常时，第一次预警即提醒项目管理人员现场应急处置，处置后回复销项，三次未解除再上公司。</p></div>
+      <div class="card rv"><h4>例 · 质量条线</h4>
+        <p>后续上传的工序照片经 AI 识别与样板不符，或钢筋周消耗由正常的 7—8 吨突然停滞归零，预警先推项目经理核实是停工待料还是质量问题，解决后回复、点掉即闭环；一周内三次未解决则升级公司。</p></div>
+    </div>
+    <p class="para rv" style="margin-top:12px">分级预警既给项目部留出充分的自我纠偏空间，避免“一有风吹草动就惊动公司”，也使公司不被海量预警淹没；<strong>预警、处置、回复、升级全程留痕、可追溯</strong>。</p>
+  </div>
+</section>
+
+<!-- ================= 第四章 效果 ================= -->
+<section class="chapter alt" id="ch4">
+  <div class="wrap">
+    <div class="ch-head rv">
+      <div class="ch-num">04</div>
+      <div>
+        <div class="ch-kicker">PART 04 · 预期效果</div>
+        <h2 class="ch-title">预期效果与提质增效分析</h2>
+        <div class="ch-ask">本环节回答：<b>投入值不值得 —— 六组对比，一眼看账</b></div>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi rv"><div class="num"><span data-count="87.5">0</span><small>%</small></div><div class="lab">边坡报告效率提升</div></div>
+      <div class="kpi rv"><div class="num"><span data-count="90">0</span><small>%</small></div><div class="lab">资料汇总耗时降低 / 算力带宽成本降低</div></div>
+      <div class="kpi rv"><div class="num"><span data-count="100">0</span><small>%</small></div><div class="lab">数据真实可信度 / 一线 AI 普及率</div></div>
+      <div class="kpi rv"><div class="num"><span data-count="3">0</span><small>秒</small></div><div class="lab">搜索直达响应（原需 3—5 天）</div></div>
+    </div>
+    <div class="tbl-wrap rv">
+      <table class="tbl">
+        <thead><tr><th style="width:20%">业务环节</th><th style="width:29%">传统模式</th><th style="width:29%">边缘智算模式（本方案）</th><th>提质增效幅度</th></tr></thead>
+        <tbody>
+          <tr><td><b>边坡应急排查报告</b></td><td>现场记录后回办公室撰写，耗时约 4 小时/份</td><td>现场录入、本地计算、AI 自动生成初稿，耗时 15-30 分钟/份</td><td><b style="color:var(--good)">效率提升 87.5%</b></td></tr>
+          <tr><td><b>工程资料收集与汇总</b></td><td>逐级下发通知 → 电话催收 → 逐级汇总，耗时 3-4 天</td><td>现场上传自动归档，搜索直达调取，秒级响应</td><td><b style="color:var(--good)">耗时降低 90%</b></td></tr>
+          <tr><td><b>数据统计</b></td><td>翻阅纸质合同、查验证书，半月完成汇总</td><td>系统内自然语言检索，一键生成全公司看板</td><td><b style="color:var(--good)">从“周级”提升至“秒级”</b></td></tr>
+          <tr><td><b>资料真实性保障</b></td><td>事后补填，无交叉验证，靠人工抽查</td><td>GPS＋时间戳＋八道逻辑交叉验证，异常自动标红</td><td><b style="color:var(--good)">数据真实可信度达到 100%</b></td></tr>
+          <tr><td><b>算力与带宽消耗</b></td><td>海量图片视频上传云端，云端长链路 Token 消耗巨大</td><td>边缘侧完成核心计算，仅结构化数据上云</td><td><b style="color:var(--good)">算力与带宽成本降低 90%</b></td></tr>
+          <tr><td><b>一线 AI 推广普及率</b></td><td>需掌握 Prompt 编写与辨别能力，仅少数人使用</td><td>傻瓜式表单/问卷交互，老职工打开即用</td><td><b style="color:var(--good)">一线普及率达到 100%</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第五章 推广 ================= -->
+<section class="chapter" id="ch5">
+  <div class="wrap">
+    <div class="ch-head rv">
+      <div class="ch-num">05</div>
+      <div>
+        <div class="ch-kicker">PART 05 · 实施与推广</div>
+        <h2 class="ch-title">实施路径与推广价值</h2>
+        <div class="ch-ask">本环节回答：<b>方案能走多远 —— 低成本、低风险、可复制</b></div>
+      </div>
+    </div>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>5.1 试点实施路线图</h3></div>
+    <div class="chain rv">
+      <div class="node">第一步<small>先验证模式</small></div><div class="arr">→</div>
+      <div class="node key">第二步<small>再试点攻坚</small></div><div class="arr">→</div>
+      <div class="node good">第三步<small>后全面扩展</small></div>
+    </div>
+    <p class="para rv">“先验证模式、再试点攻坚、后全面扩展”的三步走策略，确保低成本、低风险、快速见效。</p>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>5.2 “三个不依赖”的可复制性优势</h3></div>
+    <div class="grid g3">
+      <div class="card rv"><h4>不依赖重型基础设施</h4><p>无需购买昂贵 GPU 集群或私有化部署大模型，仅需小程序与现有 OA 协同即可运行。</p></div>
+      <div class="card rv"><h4>不依赖高级 AI 人才</h4><p>边缘端使用确定性算法，后续维护无需 Prompt 工程师或 Agent 调优专家，普通 IT 人员即可维护。</p></div>
+      <div class="card rv"><h4>不依赖海量数据标注</h4><p>算法采用规则与物理/逻辑模型驱动，无需耗费巨大成本标注训练集。</p></div>
+    </div>
+    <p class="para rv" style="margin-top:12px">本方案并非针对单一项目的定制开发，而是具备高复用性的平台化方案。</p>
+
+    <div class="sub-h rv"><div class="bar"></div><h3>5.3 推广与行业示范价值</h3></div>
+    <div class="grid g2">
+      <div class="card rv"><h4>架构复用 · 多板块推广</h4>
+        <p>方案形成的“标准化基座与边缘接入规范”可快速推广，覆盖<strong>隧道超欠挖监测、生态修复评估、资产智能巡检</strong>等多个板块，实现架构层面的整体复用。</p>
+        <div class="foot"><strong>契合国家数据资产化趋势：</strong>将公司 OA 中的历史项目、合同及地质数据转化为 Context，积极呼应国家数据局与国务院国资委关于“国有企业数据资源开发利用”的政策方向，把沉睡的业务数据转化为高价值 AI 资产。</div></div>
+      <div class="card rv"><h4>行业级示范效应</h4>
+        <p>本方案与中国地质调查局发布的“AI-GeoMapping 智能填图”系统等国家级重型系统<strong>理念同源</strong>，但走出了一条适合广大传统工程与地质企业的新路径。</p>
+        <div class="pill-row"><span class="pill green">低成本</span><span class="pill green">轻量化</span><span class="pill green">易推广</span><span class="pill green">全员普及</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 页脚 ================= -->
+<footer class="footer">
+  <div class="line"></div>
+  <div class="big">汇 报 完 毕 · 敬 请 指 正</div>
+  <p>AI 架构师 · 2026</p>
+  <p style="margin-top:6px;color:#7FA6C4">边缘智算 · 决策直达 —— 云边协同架构下的 AI 落地路径</p>
+</footer>
+
+<button class="toTop" id="toTop" title="返回顶部">↑</button>
+
+<script>
+document.documentElement.classList.add('js');
+
+/* 顶部阅读进度条 + 返回顶部 */
+var progress = document.getElementById('progress');
+var toTop = document.getElementById('toTop');
+function onScroll(){
+  var h = document.documentElement;
+  var max = h.scrollHeight - h.clientHeight;
+  progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  toTop.classList.toggle('show', h.scrollTop > 600);
+}
+document.addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+
+/* 入场动画：元素进入视口时淡入（不支持 IO 时直接全部显示） */
+if('IntersectionObserver' in window){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); }
+    });
+  },{threshold:.12, rootMargin:'0px 0px -6% 0px'});
+  document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+}else{
+  document.querySelectorAll('.rv').forEach(function(el){ el.classList.add('on'); });
+}
+
+/* 导航高亮（滚动监听当前章节） */
+var links = Array.prototype.slice.call(document.querySelectorAll('#navlinks a'));
+var secs = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+var spy = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      links.forEach(function(a){
+        a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+},{rootMargin:'-30% 0px -55% 0px'});
+secs.forEach(function(s){ if(s) spy.observe(s); });
+
+/* KPI 数字滚动（只播一次，克制呈现） */
+var counted = false;
+var kpiIO = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting && !counted){
+      counted = true;
+      document.querySelectorAll('[data-count]').forEach(function(el){
+        var target = parseFloat(el.getAttribute('data-count'));
+        var isFloat = target % 1 !== 0;
+        var t0 = null, dur = 1100;
+        function step(ts){
+          if(!t0) t0 = ts;
+          var p = Math.min((ts - t0) / dur, 1);
+          var v = target * (1 - Math.pow(1 - p, 3));
+          el.textContent = isFloat ? v.toFixed(1) : Math.round(v);
+          if(p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+      kpiIO.disconnect();
+    }
+  });
+},{threshold:.3});
+var kpis = document.querySelector('.kpis');
+if(kpis) kpiIO.observe(kpis);
+
+/* 返回顶部 */
+toTop.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+</script>
+</body>
+</html>
